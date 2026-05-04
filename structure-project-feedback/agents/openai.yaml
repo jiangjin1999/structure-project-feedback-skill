@@ -1,0 +1,4 @@
+interface:
+  display_name: "Structure Project Feedback"
+  short_description: "Turn scattered feedback into revision prompts"
+  default_prompt: "Use $structure-project-feedback to organize my scattered project feedback into a clear next-iteration prompt and update the planning files."
