@@ -2,6 +2,10 @@
 
 [English](README.md) | **简体中文**
 
+<p align="center">
+  <img src="docs/cover.png" alt="Structure Project Feedback —— 把零散反馈整理成清晰的下一轮 prompt" width="100%" />
+</p>
+
 > 把项目迭代后那一堆零散的人类反馈，整理成一份清晰的下一轮 prompt、一份更新过的文件式计划，以及一次可以 review 的 Git diff。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -169,6 +173,16 @@ your-project/
 
 同样的循环对**代码 PR review、论文导师批注、设计稿评审、产品 demo 反馈** 都适用。
 
+### 完整 walkthrough
+
+| # | 场景 | 链接 |
+|---|---|---|
+| 1 | PPT 反馈（风格 + 内容 + backlog 混合） | [examples/zh-CN/slide-deck-feedback.md](examples/zh-CN/slide-deck-feedback.md) |
+| 2 | 代码 PR review 反馈（多 reviewer 评论 + CI 失败） | [examples/zh-CN/code-review-feedback.md](examples/zh-CN/code-review-feedback.md) |
+| 3 | 论文修改反馈（含 reviewer 间冲突评论） | [examples/zh-CN/manuscript-revision.md](examples/zh-CN/manuscript-revision.md) |
+
+每个示例都是真实的端到端走查：原始反馈 → 分类表 → 生成的 `next_prompt.md` → 更新的计划文件 → Git diff。索引见 [examples/zh-CN/README.md](examples/zh-CN/README.md)。
+
 ---
 
 ## 内部工作流
@@ -208,6 +222,18 @@ structure-project-feedback-skill/
 ├── README.md
 ├── README.zh-CN.md
 ├── LICENSE
+├── docs/
+│   └── cover.png
+├── examples/
+│   ├── README.md
+│   ├── slide-deck-feedback.md
+│   ├── code-review-feedback.md
+│   ├── manuscript-revision.md
+│   └── zh-CN/
+│       ├── README.md
+│       ├── slide-deck-feedback.md
+│       ├── code-review-feedback.md
+│       └── manuscript-revision.md
 └── structure-project-feedback/
     ├── SKILL.md
     ├── agents/

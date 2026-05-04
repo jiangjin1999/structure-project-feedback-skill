@@ -2,6 +2,10 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
+<p align="center">
+  <img src="docs/cover.png" alt="Structure Project Feedback — turn scattered feedback into a clear next-iteration prompt" width="100%" />
+</p>
+
 > Turn scattered human feedback after a project iteration into a clear next-iteration prompt, an updated file-based plan, and a reviewable Git diff.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -170,6 +174,16 @@ Plus a Git diff you can review before committing.
 
 The same loop works for code review feedback, manuscript comments from a reviewer, design crits on a UI prototype, or product feedback on a prototype demo.
 
+### Full walkthroughs
+
+| # | Scenario | Link |
+|---|---|---|
+| 1 | Slide deck feedback (mixed style + content + backlog) | [examples/slide-deck-feedback.md](examples/slide-deck-feedback.md) |
+| 2 | Code review feedback (PR with reviewer threads + CI failure) | [examples/code-review-feedback.md](examples/code-review-feedback.md) |
+| 3 | Manuscript revision feedback (academic review with conflicting comments) | [examples/manuscript-revision.md](examples/manuscript-revision.md) |
+
+Each example is a real, end-to-end run: original feedback → classified table → produced `next_prompt.md` → updated plan files → Git diff. See [examples/README.md](examples/README.md) for the index.
+
 ---
 
 ## How it works
@@ -207,7 +221,20 @@ The skill is plain markdown — no language runtime, no MCP server, no external 
 ```text
 structure-project-feedback-skill/
 ├── README.md
+├── README.zh-CN.md
 ├── LICENSE
+├── docs/
+│   └── cover.png
+├── examples/
+│   ├── README.md
+│   ├── slide-deck-feedback.md
+│   ├── code-review-feedback.md
+│   ├── manuscript-revision.md
+│   └── zh-CN/
+│       ├── README.md
+│       ├── slide-deck-feedback.md
+│       ├── code-review-feedback.md
+│       └── manuscript-revision.md
 └── structure-project-feedback/
     ├── SKILL.md
     ├── agents/
