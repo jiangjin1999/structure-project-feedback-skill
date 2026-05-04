@@ -1,5 +1,7 @@
 # Structure Project Feedback
 
+**English** | [简体中文](README.zh-CN.md)
+
 > Turn scattered human feedback after a project iteration into a clear next-iteration prompt, an updated file-based plan, and a reviewable Git diff.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
