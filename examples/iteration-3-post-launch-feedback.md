@@ -43,6 +43,10 @@ The agent re-reads, in order:
 
 This replay is what makes Iteration 3 different from "an agent meeting the project for the first time".
 
+> Step 0 (Bootstrap) is **not run** here either. The
+> `## Project shape — auto-detected` block from Iteration 1 still
+> serves as the idempotency marker.
+
 ---
 
 ## 1. Raw human feedback (verbatim, condensed across channels)

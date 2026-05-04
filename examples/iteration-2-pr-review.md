@@ -46,6 +46,10 @@ Before touching anything, the agent re-reads:
 This explicit "memory replay" is what stops Iteration 2 from
 re-deciding things that were already settled.
 
+> Step 0 (Bootstrap) is **not run** in this iteration. The
+> `## Project shape — auto-detected` block written by Iteration 1 is
+> the idempotency marker; the agent recognizes it and skips bootstrap.
+
 ---
 
 ## 1. Raw human feedback (verbatim, from PR #PR-4123)

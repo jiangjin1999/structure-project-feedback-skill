@@ -14,7 +14,7 @@
 | 案例项目 | [`openai/codex`](https://github.com/openai/codex)（Apache-2.0，~80k★） |
 | 触发点 | 一条含 12 条评论的 GitHub Discussion，提议给 `codex` 增加 **跨 session 的持久化 agent memory** |
 | 维护者目标 | 把混乱的讨论串转化为可执行的 RFC + 一份未决问题清单 |
-| 本轮迭代之前的 file kit 状态 | 空 |
+| 本轮迭代之前的状态 | 案例 repo 已存在（有 `README.md`、`AGENTS.md`、`Cargo.toml`、`src/`、`rfcs/` 等），但 **暂无任何 plan 文件** —— 会先跑 Step 0（Bootstrap） |
 
 ---
 
@@ -56,18 +56,71 @@
 
 ## 2. skill 一步步做了什么
 
+### Step 0 —— Bootstrap：适配已有项目（仅首次运行）
+
+`codex` 是一个已经存在的真实仓库。skill 必须 **适配** 它，而不是在项目根
+目录里随便创建一组通用的 `task_plan.md` / `findings.md` / … 来污染仓库。
+
+```bash
+$ git ls-files | head -20
+.github/workflows/ci.yml
+AGENTS.md
+Cargo.lock
+Cargo.toml
+LICENSE
+README.md
+docs/contributing.md
+docs/install.md
+rfcs/.keep
+src/main.rs
+...
+```
+
+agent 跑 bootstrap：
+
+1. **扫描项目 shape** —— 识别为 Rust workspace（`Cargo.toml`、`src/`），
+   有现成的 `rfcs/` 目录、一个 `AGENTS.md`、以及 `docs/`。
+2. **把 skill 文件映射到现有约定** —— 根目录没有 `task_plan.md`、
+   `findings.md`、`progress.md`、`changelog.md`。`rfcs/` 是 feature 级
+   工作的天然归宿；维护者决定把本 RFC 的 plan 文件放到
+   `rfcs/0001-persistent-memory/` 子目录，而不是污染根目录。
+3. **推断项目类型** —— Rust CLI coding agent。
+4. **把自动检测到的映射** 记到新建的
+   `rfcs/0001-persistent-memory/findings.md`：
+
+   ```markdown
+   ## Project shape — auto-detected (2026-04-22)
+   - Project type: Rust CLI coding agent (openai/codex).
+   - File-kit mapping（限定在本 RFC 内）：
+     - feedback    → (new) rfcs/0001-persistent-memory/feedback.md
+     - task_plan   → (new) rfcs/0001-persistent-memory/task_plan.md
+     - findings    → (new) rfcs/0001-persistent-memory/findings.md
+     - progress    → (new) rfcs/0001-persistent-memory/progress.md
+     - next_prompt → (new) rfcs/0001-persistent-memory/next_prompt.md
+     - changelog   → (new) rfcs/0001-persistent-memory/changelog.md
+   - 命名风格：lowercase_with_underscores.md（与 docs/ 一致）。
+   - commit message 风格：conventional（与 `git log` 一致）。
+   - 历史笔记语言：en。
+   - 只读参考：AGENTS.md、README.md、docs/contributing.md。
+   - 不确定项：暂无关键不确定，无需提问。
+   ```
+
+bootstrap 映射本身就是幂等性标记 —— Iteration 2、3 检测到这一块就会跳过
+Step 0。
+
+> 下文所有文件路径都按上面的映射，位于 `rfcs/0001-persistent-memory/`
+> 之内。为了可读性，文中只写裸文件名（`task_plan.md`）。
+
 ### Step 1 —— 定位
 
 ```bash
 $ git status --short
-?? rfcs/
-
-# 还没有任何计划文件 —— 这是第一轮迭代。
+?? rfcs/0001-persistent-memory/
 ```
 
-智能体先读 `AGENTS.md`（这是案例项目自己的契约），注意到 `codex` 已经有
+智能体先读 `AGENTS.md`（案例项目自己的契约），注意到 `codex` 已经有
 approval modes、sandbox，并且 @u_kate 提到了 skills cache。没有现成的
-`task_plan.md` 等需要合并。
+`task_plan.md` 等需要合并 —— 上面 bootstrap 的映射会指引所有写入。
 
 ### Step 2 —— 保留
 

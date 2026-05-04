@@ -46,6 +46,9 @@ agent 按以下顺序重新读：
 
 正是这个 replay，让 Iteration 3 区别于"一个第一次接触本项目的 agent"。
 
+> 本轮也 **不跑** Step 0（Bootstrap）。Iteration 1 留下的
+> `## Project shape — auto-detected` 块仍然是幂等性标记。
+
 ---
 
 ## 1. 原始反馈（按原话保留，跨渠道浓缩）

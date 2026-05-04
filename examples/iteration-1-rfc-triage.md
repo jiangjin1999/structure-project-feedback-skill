@@ -14,7 +14,7 @@
 | Host project | [`openai/codex`](https://github.com/openai/codex) (Apache-2.0, ~80k★) |
 | Trigger | A 12-comment GitHub Discussion proposing **persistent agent memory across `codex` sessions** |
 | Maintainer's goal | Turn the messy thread into an actionable RFC and an open-decisions log |
-| State of the file kit before this iteration | empty |
+| State before this iteration | The host repo already exists (it has `README.md`, `AGENTS.md`, `Cargo.toml`, `src/`, `rfcs/`, etc.) but **no plan files yet** — Step 0 (Bootstrap) will run |
 
 ---
 
@@ -46,19 +46,76 @@
 
 ## 2. What the skill does
 
+### Step 0 — Bootstrap from existing project (first time only)
+
+`codex` is already a real, populated repo. The skill must adapt to it
+rather than create a generic `task_plan.md` / `findings.md` / … in the
+project root and pollute it.
+
+```bash
+$ git ls-files | head -20
+.github/workflows/ci.yml
+AGENTS.md
+Cargo.lock
+Cargo.toml
+LICENSE
+README.md
+docs/contributing.md
+docs/install.md
+rfcs/.keep
+src/main.rs
+...
+```
+
+The agent runs the bootstrap step:
+
+1. **Scan project shape** — sees a Rust workspace (`Cargo.toml`,
+   `src/`), an existing `rfcs/` directory, an `AGENTS.md`, and `docs/`.
+2. **Map skill files to existing conventions** — there is no
+   `task_plan.md`, `findings.md`, `progress.md`, or `changelog.md` at
+   the root. There is a `rfcs/` directory that is the natural home for
+   feature-level work; the maintainer chooses to scope this RFC's plan
+   files into `rfcs/0001-persistent-memory/` instead of polluting the
+   root.
+3. **Infer the project type** — Rust CLI coding agent.
+4. **Record the auto-detected mapping** in the new
+   `rfcs/0001-persistent-memory/findings.md`:
+
+   ```markdown
+   ## Project shape — auto-detected (2026-04-22)
+   - Project type: Rust CLI coding agent (openai/codex).
+   - File-kit mapping (scoped to this RFC):
+     - feedback    → (new) rfcs/0001-persistent-memory/feedback.md
+     - task_plan   → (new) rfcs/0001-persistent-memory/task_plan.md
+     - findings    → (new) rfcs/0001-persistent-memory/findings.md
+     - progress    → (new) rfcs/0001-persistent-memory/progress.md
+     - next_prompt → (new) rfcs/0001-persistent-memory/next_prompt.md
+     - changelog   → (new) rfcs/0001-persistent-memory/changelog.md
+   - Naming style: lowercase_with_underscores.md (matches docs/).
+   - Commit message style: conventional (matches `git log`).
+   - Language of prior notes: en.
+   - Read-only references: AGENTS.md, README.md, docs/contributing.md.
+   - Unsure about: nothing critical; proceeding without a question.
+   ```
+
+The bootstrap mapping is the idempotency marker — Iterations 2 and 3
+will detect this block and skip Step 0.
+
+> All file paths below are inside `rfcs/0001-persistent-memory/` per
+> the mapping above. Paths are written as bare names (`task_plan.md`)
+> for readability.
+
 ### Step 1 — Orient
 
 ```bash
 $ git status --short
-?? rfcs/
-
-# No prior planning files exist yet — this is the first iteration.
+?? rfcs/0001-persistent-memory/
 ```
 
-The agent reads `AGENTS.md` (which is the host project's contract) and
-notes that `codex` already has approval modes, sandbox, and a skills
-cache referenced by @u_kate. No existing `task_plan.md` etc. to merge
-with.
+The agent reads `AGENTS.md` (the host project's contract) and notes
+that `codex` already has approval modes, sandbox, and a skills cache
+referenced by @u_kate. No existing `task_plan.md` etc. to merge with —
+the bootstrap mapping above will guide all writes.
 
 ### Step 2 — Preserve
 

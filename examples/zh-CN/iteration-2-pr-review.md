@@ -45,6 +45,10 @@ agent 在动任何东西之前，先重新读：
 这种显式的"memory replay"才是让 Iteration 2 不会重新决策已经定下来的东西
 的关键机制。
 
+> 本轮 **不跑** Step 0（Bootstrap）。Iteration 1 写下的
+> `## Project shape — auto-detected` 块就是幂等性标记；agent 识别到它
+> 就跳过 bootstrap。
+
 ---
 
 ## 1. 原始反馈（按原话保留，来自 PR #PR-4123）
