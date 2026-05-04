@@ -1,6 +1,19 @@
 ---
 name: structure-project-feedback
 description: Structure scattered human feedback after a project iteration into a clear next-iteration prompt, update file-based plans and progress records, preserve raw notes with archives, review changes with Git, and optionally commit or prepare publication. Use when a user reacts to a draft, prototype, analysis, code result, document, deck, website, or plan with fragmented comments and wants the AI to organize intent, revise the plan, maintain task_plan.md/findings.md/progress.md/changelog.md-style files, or create a reusable prompt for the next round.
+version: 1.0.0
+category: productivity
+platforms:
+  - CLAUDE_CODE
+  - CURSOR
+  - CODEX_CLI
+tags:
+  - feedback
+  - iteration
+  - planning
+  - prompt-engineering
+  - workflow
+  - git
 license: MIT
 ---
 
