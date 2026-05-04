@@ -18,6 +18,7 @@ After every iteration of a writing draft, prototype, slide deck, code change, or
 
 `structure-project-feedback` is an AI agent **skill** (`SKILL.md` spec) that gives any compatible agent a clear playbook for that exact moment:
 
+0. **Bootstrap** *(first use only)* — read the project's existing structure and inherit its naming, instead of forcing a fresh file kit on top of your repo.
 1. **Preserve** the user's raw words before summarizing.
 2. **Classify** what must change vs. what should stay stable.
 3. **Generate** a next-iteration prompt that is auditable and portable across agents.
@@ -36,6 +37,7 @@ It is compatible with any AI coding agent that follows the SKILL.md / AGENTS.md 
 | Multiple feedback rounds | Plan drifts, old decisions are forgotten | `findings.md` + `changelog.md` keep decisions stable across rounds |
 | Switching between AI tools | Each agent re-discovers context from scratch | The generated next-iteration prompt is tool-agnostic and reusable |
 | "What changed?" after an iteration | Unstructured diff, hard to review | Git diff + the file kit make every change explicit |
+| Introducing the skill into a repo that already has its own `TODO.md`, `ROADMAP.md`, `DECISIONS.md`, etc. | The agent creates duplicate plan files; two sources of truth drift apart | **Bootstrap step** maps existing files to the skill's roles and reuses them in place |
 
 ---
 
@@ -116,6 +118,30 @@ Place the `structure-project-feedback/` directory wherever your agent reads skil
 
 ---
 
+## Bootstrap from an existing project
+
+The first time the skill runs in a project that already has content — code, docs, notes, a `TODO.md`, an `AGENTS.md`, a `ROADMAP.md`, a `docs/decisions/` folder, or anything else — it **does not** overwrite your world with a generic file kit. It adapts to what is already there:
+
+1. **Scans** the top-level tree, reads `README`, `AGENTS.md`, `CONTRIBUTING.md`, and the 10 most recent commits (read-only).
+2. **Maps** existing files to the skill's roles. For example:
+
+   | Skill role | Accepted existing files |
+   |---|---|
+   | `feedback.md` | `notes.md`, `REVIEW.md`, `comments.md`, `issues/*.md`, … |
+   | `task_plan.md` | `TODO.md`, `PLAN.md`, `ROADMAP.md`, `backlog.md`, `tasks.md`, … |
+   | `findings.md` | `DECISIONS.md`, `docs/decisions/`, `ADR/`, `rationale.md`, … |
+   | `progress.md` | `PROGRESS.md`, `status.md`, `weekly.md`, `journal.md`, … |
+   | `changelog.md` | `CHANGELOG.md`, `HISTORY.md`, `RELEASE_NOTES.md`, … |
+   | `next_prompt.md` | `prompt.md`, `next.md`, `instructions.md`, … |
+
+3. **Infers the project type** (library / paper / deck / web app / research notebook / docs-only, etc.) from evidence (`pyproject.toml`, `*.tex`, `*.key`, `package.json`, `notebooks/`, ...).
+4. **Seeds only what is missing**, using the naming style the repo already uses (`UPPERCASE.md` vs. `lowercase.md` vs. `kebab-case.md`).
+5. **Records the mapping** under `## Project shape — auto-detected (<date>)` inside `findings.md` (or the mapped equivalent). That block is the idempotency marker — bootstrap runs **at most once** per project.
+
+If anything is ambiguous (e.g. two plausible `task_plan` candidates), the skill asks **one** consolidated question with both surfaced — never a storm of small questions. You can explicitly re-run with *"re-bootstrap the project shape"* after a major repo restructure.
+
+---
+
 ## What the skill produces
 
 Given a feedback round, the skill produces a consistent set of artifacts:
@@ -174,23 +200,31 @@ Plus a Git diff you can review before committing.
 
 The same loop works for code review feedback, manuscript comments from a reviewer, design crits on a UI prototype, or product feedback on a prototype demo.
 
-### Full walkthroughs
+### Full walkthrough — one continuous story across 3 iterations
 
-| # | Scenario | Link |
+The examples follow a single feature being designed for the real
+[`openai/codex`](https://github.com/openai/codex) project (the open-source
+~80k★ coding agent CLI from OpenAI): **persistent agent memory across
+sessions**. Each iteration shows how `task_plan.md`, `findings.md`,
+`progress.md`, and `changelog.md` accumulate as the project's long-lived
+file-based memory.
+
+| # | Iteration | What's special |
 |---|---|---|
-| 1 | Slide deck feedback (mixed style + content + backlog) | [examples/slide-deck-feedback.md](examples/slide-deck-feedback.md) |
-| 2 | Code review feedback (PR with reviewer threads + CI failure) | [examples/code-review-feedback.md](examples/code-review-feedback.md) |
-| 3 | Manuscript revision feedback (academic review with conflicting comments) | [examples/manuscript-revision.md](examples/manuscript-revision.md) |
+| 1 | [RFC triage from a 12-comment GitHub Discussion](examples/iteration-1-rfc-triage.md) | Bootstraps the file kit; logs 4 open decisions |
+| 2 | [PR review with a challenge to a prior decision](examples/iteration-2-pr-review.md) | Reads `findings.md` first; **re-opens** Q1 instead of silently flipping it |
+| 3 | [Post-launch user feedback with deferred-idea revival](examples/iteration-3-post-launch-feedback.md) | Recognizes already-deferred ideas; enforces a constraint set 1 month earlier without anyone re-stating it |
 
-Each example is a real, end-to-end run: original feedback → classified table → produced `next_prompt.md` → updated plan files → Git diff. See [examples/README.md](examples/README.md) for the index.
+See [examples/README.md](examples/README.md) for the index.
 
 ---
 
 ## How it works
 
-The skill follows a 7-step loop documented in [`structure-project-feedback/SKILL.md`](structure-project-feedback/SKILL.md):
+The skill follows a loop documented in [`structure-project-feedback/SKILL.md`](structure-project-feedback/SKILL.md):
 
-1. **Orient** — read existing instructions and plans.
+0. **Bootstrap** *(first run per project)* — scan the project, map existing files to skill roles, record the mapping under `## Project shape — auto-detected`.
+1. **Orient** — read existing instructions and plans (using the mapping).
 2. **Preserve** — archive raw feedback before any summarization.
 3. **Classify** — Must change / Keep stable / Intent / Evidence / Constraint / Question / Backlog.
 4. **Convert** — produce a next-iteration prompt with acceptance checks.
@@ -227,14 +261,14 @@ structure-project-feedback-skill/
 │   └── cover.png
 ├── examples/
 │   ├── README.md
-│   ├── slide-deck-feedback.md
-│   ├── code-review-feedback.md
-│   ├── manuscript-revision.md
+│   ├── iteration-1-rfc-triage.md
+│   ├── iteration-2-pr-review.md
+│   ├── iteration-3-post-launch-feedback.md
 │   └── zh-CN/
 │       ├── README.md
-│       ├── slide-deck-feedback.md
-│       ├── code-review-feedback.md
-│       └── manuscript-revision.md
+│       ├── iteration-1-rfc-triage.md
+│       ├── iteration-2-pr-review.md
+│       └── iteration-3-post-launch-feedback.md
 └── structure-project-feedback/
     ├── SKILL.md
     ├── agents/
@@ -261,6 +295,12 @@ Yes. The skill instructs the agent to keep the user's language unless the user a
 
 **How is this different from a generic "planning" skill?**
 A planning skill helps you decompose work *before* the first iteration. This skill is specifically for the moment *after* an artifact exists and a human reacts to it with messy feedback. The two compose well.
+
+**I already have my own `TODO.md` / `DECISIONS.md` / `CHANGELOG.md`. Will this skill duplicate them?**
+No. The **Bootstrap** step (Step 0) detects existing files and reuses them in place — it only creates new files for roles that are genuinely missing, and uses whatever naming style (`UPPERCASE.md`, `lowercase.md`, `kebab-case.md`) your repo already prefers.
+
+**What if the bootstrap maps a file wrong?**
+The mapping is written to `findings.md` (or its mapped equivalent) under `## Project shape — auto-detected`. Edit it once, tell the agent "re-bootstrap the project shape", and it will re-read that block on the next run.
 
 ---
 

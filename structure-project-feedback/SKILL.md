@@ -1,7 +1,7 @@
 ---
 name: structure-project-feedback
-description: Structure scattered human feedback after a project iteration into a clear next-iteration prompt, update file-based plans and progress records, preserve raw notes with archives, review changes with Git, and optionally commit or prepare publication. Use when a user reacts to a draft, prototype, analysis, code result, document, deck, website, or plan with fragmented comments and wants the AI to organize intent, revise the plan, maintain task_plan.md/findings.md/progress.md/changelog.md-style files, or create a reusable prompt for the next round.
-version: 1.0.0
+description: Structure scattered human feedback after a project iteration into a clear next-iteration prompt, update file-based plans and progress records, preserve raw notes with archives, review changes with Git, and optionally commit or prepare publication. On first use in an existing project, bootstrap by reading the current project structure (code, docs, non-standard plan files) and inherit the repository's conventions instead of forcing a fresh file kit. Use when a user reacts to a draft, prototype, analysis, code result, document, deck, website, or plan with fragmented comments and wants the AI to organize intent, revise the plan, maintain task_plan.md/findings.md/progress.md/changelog.md-style files, or create a reusable prompt for the next round.
+version: 1.1.0
 category: productivity
 platforms:
   - CLAUDE_CODE
@@ -42,12 +42,78 @@ Typical trigger phrases include: "organize my feedback", "make a prompt for the 
 - Pure code refactor with no human-language feedback. Stick to the normal code-edit loop.
 - The user explicitly asks for an immediate edit and does not want a structured plan.
 
+## Bootstrap from an existing project (Step 0 — only on first use per project)
+
+When the skill is activated on a project that **already has content** (code, docs, notes, early plans under non-standard names, a README, an AGENTS.md, etc.) and the standard file kit (`task_plan.md`, `findings.md`, `progress.md`, `changelog.md`) is **not yet** present, do **not** start by creating a fresh, generic file kit. Adapt to what is already there.
+
+Trigger condition: any of the following are true when the skill first runs in a project:
+- The repo has at least one non-empty file other than `.git/`.
+- There is no file named exactly `task_plan.md`, `findings.md`, or `progress.md`.
+- There is a `README`, `AGENTS.md`, `CONTRIBUTING.md`, `CLAUDE.md`, `CURSOR.md`, package manifest (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `*.tex`, `*.Rmd`, etc.), an `issues/` folder, a `docs/` folder, or any file whose name matches the patterns listed below.
+
+Action sequence:
+
+1. **Scan the project shape** (read-only).
+   - Run `git ls-files | head -200` or list the top-level tree; identify directories like `src/`, `docs/`, `paper/`, `slides/`, `notebooks/`, `examples/`, `issues/`, `.github/`.
+   - Read up to 3 anchor files if present: the root `README*`, `AGENTS.md`, and any `CONTRIBUTING.md`.
+   - Inspect the most recent 10 commits with `git log --oneline -10` (skip silently if not a Git repo) to learn message conventions.
+
+2. **Map existing files to the skill's file kit.**
+   Use the following equivalence table. If a hit is found, the skill will **reuse that file** instead of creating a new one. Multiple hits are allowed; pick the most active one (most recent modification wins).
+
+   | Skill role | Existing file patterns to accept |
+   |---|---|
+   | `feedback.md` | `feedback.md`, `FEEDBACK.md`, `notes.md`, `NOTES.md`, `REVIEW.md`, `review-notes.md`, `comments.md`, `issues/*.md` |
+   | `task_plan.md` | `task_plan.md`, `TODO.md`, `TODOS.md`, `PLAN.md`, `plan.md`, `ROADMAP.md`, `tasks.md`, `backlog.md`, `.github/ISSUE_TEMPLATE/*` |
+   | `findings.md` | `findings.md`, `DECISIONS.md`, `decisions/`, `docs/decisions/`, `ADR/`, `adr/`, `rationale.md` |
+   | `progress.md` | `progress.md`, `PROGRESS.md`, `status.md`, `weekly.md`, `updates.md`, `journal.md` |
+   | `next_prompt.md` | `next_prompt.md`, `prompt.md`, `PROMPT.md`, `next.md`, `instructions.md`, `AGENTS.md` (read-only reference, do not overwrite) |
+   | `changelog.md` | `CHANGELOG.md`, `changelog.md`, `HISTORY.md`, `RELEASE_NOTES.md` |
+
+3. **Seed only what is missing.**
+   - If a role already has a mapped file, keep the existing name. Never rename to the canonical form silently.
+   - If a role is truly absent and will be needed for this feedback round, create the smallest reasonable file using the **repo's existing naming style** (e.g. if the repo uses `UPPERCASE.md`, create `FEEDBACK.md` rather than `feedback.md`).
+   - Never touch `README*`, `LICENSE`, `AGENTS.md`, or package manifests.
+
+4. **Infer the project type** from evidence and note it in findings. Examples:
+   - `pyproject.toml` + `tests/` → Python library / app.
+   - `*.tex` + `refs.bib` → academic paper project.
+   - `slides/` + `*.key` / `*.pptx` → presentation project.
+   - `app/` + `package.json` + `tailwind.config.*` → web app.
+   - `notebooks/` + `data/` → research / data-analysis project.
+   - Only markdown + no code → documentation / knowledge-base project.
+
+5. **Record the bootstrap result** under a clearly marked section in `findings.md` (or the mapped equivalent):
+
+   ```markdown
+   ## Project shape — auto-detected (<YYYY-MM-DD>)
+   - Project type: <inferred type>
+   - File-kit mapping:
+     - feedback    → <existing path or "(new) <path>">
+     - task_plan   → <…>
+     - findings    → <…>
+     - progress    → <…>
+     - next_prompt → <…>
+     - changelog   → <…>
+   - Naming style: <lowercase.md | UPPERCASE.md | kebab-case.md | mixed>
+   - Commit message style: <conventional | prose | mixed>
+   - Language of prior notes: <en | zh | …>
+   - Unsure about: <items that need user confirmation in one pass>
+   ```
+
+6. **Ask one consolidated question if needed.** If any single mapping is ambiguous in a way that would cause harm (e.g. two plausible `task_plan.md` candidates), ask the user once with both candidates surfaced — do **not** split into many small questions.
+
+7. **Proceed to the standard feedback loop** (Step 1 onwards), now using the mapped file names throughout.
+
+Bootstrap must be performed **at most once per project**. On subsequent invocations, the skill skips this step (the `## Project shape — auto-detected` block in findings is the idempotency marker). If the user later wants to re-bootstrap (e.g. after a large repo restructure), they can explicitly ask: "re-bootstrap the project shape".
+
 ## Core Workflow
 
 1. Orient in the project.
+   - If this is the first use of the skill in this project (no `## Project shape — auto-detected` block exists in `findings.md` or its mapped equivalent), run **Bootstrap from an existing project** (Step 0 above) first.
    - Read local instructions first: `AGENTS.md`, `README.md`, project-specific skill files, or equivalent.
    - Inspect the current artifact or result the user is reacting to when it is available.
-   - Read existing planning files before editing: `task_plan.md`, `findings.md`, `progress.md`, `prompt.md` or `next_prompt.md`, `changelog.md`, and any feedback or notes file already used by the repo.
+   - Read existing planning files before editing. Use the file names recorded in the bootstrap mapping (falling back to defaults `task_plan.md`, `findings.md`, `progress.md`, `prompt.md` / `next_prompt.md`, `changelog.md`, `feedback.md`).
    - Run `git status --short` before edits so unrelated work is visible. Skip silently if the project is not a Git repo.
 
 2. Preserve raw feedback.
@@ -89,7 +155,7 @@ Typical trigger phrases include: "organize my feedback", "make a prompt for the 
 
 ## File Kit
 
-Prefer the repository's existing file names. If a project has no structure yet, create the smallest useful subset:
+Always prefer the **bootstrap mapping** recorded under `## Project shape — auto-detected` (see Step 0). If no mapping exists yet, prefer whatever file names the repository already uses. Only when no equivalent exists should the skill fall back to the canonical names below. Use this canonical set as the minimum useful subset when starting from scratch:
 
 - `task_plan.md`: durable plan and current task breakdown.
 - `findings.md`: decisions, constraints, evidence, and lessons.

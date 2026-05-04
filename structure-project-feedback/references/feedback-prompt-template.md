@@ -9,6 +9,18 @@ Use this template when converting scattered human feedback into a prompt for the
 
 [Briefly state the project, current artifact/result, and what the previous iteration tried to achieve.]
 
+## Project shape (first iteration only)
+
+- Project type: [e.g. Python library, LaTeX paper, PPT deck, web app, research notebook, docs-only repo]
+- File-kit mapping (only include this on the first iteration):
+  - feedback    -> [existing path, or "(new) <path>"]
+  - task_plan   -> [...]
+  - findings    -> [...]
+  - progress    -> [...]
+  - next_prompt -> [...]
+  - changelog   -> [...]
+- Naming style: [lowercase.md | UPPERCASE.md | kebab-case.md | mixed]
+
 ## What I Observed
 
 - [Concrete issue, gap, or reaction from the user.]
